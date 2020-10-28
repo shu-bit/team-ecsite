@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="jp.co.internous.cepheus.model.mapper.TblPurchaseHistoryMapper">
+	<insert id="insert" useGeneratedKeys="true" parameterType="hashmap">
+		INSERT INTO tbl_purchase_history
+			(user_id, product_id, product_count, price, destination_id)
+		SELECT 
+			cart.user_id, cart.product_id, cart.product_count,product.price, #{destinationId}
+		FROM
+			 tbl_cart cart
+		JOIN
+			 mst_product product
+		ON
+			 cart.product_id = product.id
+		WHERE
+			 cart.user_id = #{userId};
+
+	</insert>
+	<select id="findByUserId" resultType="jp.co.internous.cepheus.model.domain.dto.PurchaseHistoryDto">
+		SELECT 
+			DATE_FORMAT(history.purchased_at, '%Y/%m/%d %T') AS purchased_at,
+			history.product_count AS product_count,
+			product.product_name AS product_name, 
+			history.price AS price, 
+			dest.family_name AS family_name, 
+			dest.first_name AS first_name, 
+			dest.address AS address 
+		FROM tbl_purchase_history AS history
+		JOIN
+			mst_product AS product
+		ON 
+			history.product_id = product.id
+		JOIN
+			mst_destination AS dest 
+		ON 
+			history.destination_id = dest.id 
+		WHERE 
+			history.user_id = #{userId} AND history.status = 1 
+		ORDER BY 
+			purchased_at DESC;
+	</select>
+</mapper>

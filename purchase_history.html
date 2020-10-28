@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8" />
+
+<link href="/css/reset.css" th:href="@{/css/reset.css}" rel="stylesheet" />
+<link href="/css/style.css" th:href="@{/css/style.css}" rel="stylesheet" />
+
+<title>Font Market</title>
+</head>
+<body>
+
+<header th:insert="fragments/page_header::pageHeader"></header>
+
+<main>
+
+	<div class="container history">
+		<div>
+			<h2>購入履歴</h2>
+		</div>
+		<div class="noData hidden">
+			<p class="info">購入履歴はありません。</p>
+		</div>
+		<table class="history">
+			<tr>
+				<th>購入日時</th><th>商品名</th><th>価格(円)</th><th>個数</th><th>宛名</th><th>宛先住所</th>
+			</tr>
+			<tr	th:each="history: ${historyList}">
+				<td th:text="${history.purchasedAt}"/>
+			<td th:text="${history.productName}"/>
+				<td th:text="${history.price}"/>
+				<td th:text="${history.productCount}"/>
+				<td><span	th:text ="${history.familyName} + ' ' + ${history.firstName}"></span></td>
+				<td th:text="${history.address}" class="address" />
+			</tr>
+		</table>
+		<div class="buttonArea">
+			<button id="deleteButton">削除</button>
+		</div>
+	
+	</div>
+
+</main>
+<script th:inline="javascript">
+/*<![CDATA[*/
+$(() => {
+	isExistsHistoryList(false);	// 引数(削除済)にfalseを指定
+	$('#deleteButton').on('click', () => {
+		deleteHistory();
+	});
+});
+
+function isExistsHistoryList(deleted) {
+	let histroryListSize = /*[[${historyList.size()}]]*/;
+	
+	//リストのサイズが0　もしくは　テーブルヘッダー以外の行がなければ
+	if (histroryListSize == 0 || deleted) {
+		// 情報なしメッセージを表示
+		$('.noData').removeClass('hidden');
+		
+		//テーブルのtrを非表示
+		$('.history tr').remove();
+		
+		// ボタンを非表示
+		$('.buttonArea').remove();
+	}
+}
+
+function deleteHistory() {
+	$.ajax({
+		type: 'POST',
+		url: '/cepheus/history/delete'
+	})
+	.then((result) => {
+		isExistsHistoryList(true);	// 引数(削除済)にtrueを指定
+	}, () => {
+		alert('Error: ajax connection failed.');
+	});		
+}
+/*]]>*/
+</script>
+
+</body>
+</html>
